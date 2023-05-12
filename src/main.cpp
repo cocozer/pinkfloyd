@@ -157,7 +157,7 @@ bool CircumCircle(
     return ((drsqr - *rsqr) <= EPSILON ? true : false);
 }
 
-void fillVectorTriangles(Application &app)
+void fillVectorTriangles(Application &app) // Fonction qui ajoute les points aux triangles à partir des derniers points ajoutés
 {
     if(app.points.size()%3 == 0) {
         int indice1 = app.points.size()-3;
@@ -165,6 +165,30 @@ void fillVectorTriangles(Application &app)
         int indice3 = app.points.size()-1;
 
         app.triangles.push_back(Triangle{app.points[indice1], app.points[indice2], app.points[indice3]});
+    }
+}
+
+void TriangulationDelaunay(Application &app) 
+{
+   
+    app.triangles.clear(); // On vide les triangles
+
+    app.triangles.push_back(Triangle{Coords{-1000, -1000}, Coords{500, 3000}, Coords{1500, -1000}}); // On créé un très grand triangle
+
+    for (std::size_t i = 0; i < app.points.size(); i++) { // Pour chaque point p du repère
+        std::vector<Segment> *ls;
+        for (std::size_t j = 0; j < app.triangles.size(); j++) { // Pour chaque triangle déjà créé
+
+            float *xc; // un pointeur vers la coordonnée x du centre du cercle circonscrit
+            float *yc; // un pointeur vers la coordonnée y du centre du cercle circonscrit
+            float *rsqr; // un pointeur vers le carré du rayon du cercle circonscrit
+
+            if (CircumCircle(app.points[i].x, app.points[i].y, app.triangles[j].p1.x, app.triangles[j].p1.y, app.triangles[j].p2.x, app.triangles[j].p2.y, app.triangles[j].p3.x, app.triangles[j].p3.y, xc, yc, rsqr)) {
+               ls->push_back = {app.triangles[j].p1, app.triangles[j].p2}
+               ls->push_back = {app.triangles[j].p2, app.triangles[j].p3}
+               ls->push_back = {app.triangles[j].p1, app.triangles[j].p3}
+            }
+        }
     }
 }
 
@@ -202,6 +226,7 @@ bool handleEvent(Application &app)
                 app.focus.y = 0;
                 app.points.push_back(Coords{e.button.x, e.button.y});
                 fillVectorTriangles(app);
+                TriangulationDelaunay(app);
                 construitVoronoi(app);
             }
         }
