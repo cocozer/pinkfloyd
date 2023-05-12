@@ -23,12 +23,23 @@ struct Coords
 struct Segment
 {
     Coords p1, p2;
+    Segment(Coords point1, Coords point2) : p1(point1), p2(point2) {} //constructeur : initialise les membres p1 et p2 avec les points point1 et point2 lorsqu'un objet Segment est créé
 };
 
 struct Triangle
 {
     Coords p1, p2, p3;
     bool complet=false;
+
+    Triangle(const Coords& _p1, const Coords& _p2, const Coords& _p3, bool _complet=false) : p1(_p1), p2(_p2), p3(_p3), complet(_complet) {}
+
+    inline bool operator==(const Triangle& valueToCompare){
+        if ((this->p1)==(valueToCompare.p1)){
+            if((this->p2)==(valueToCompare.p2)){
+                if((this->p3)==(valueToCompare.p3)){
+                    return true;}}}
+        return false;
+    }
 };
 
 struct Application
@@ -170,27 +181,60 @@ void fillVectorTriangles(Application &app) // Fonction qui ajoute les points aux
 
 void TriangulationDelaunay(Application &app) 
 {
-   
+   sort(app.points.begin(), app.points.end(), [](Coords &p1, Coords &p2) { return p1.x < p2.x; }); //on trie les points par la coordonée x
+
     app.triangles.clear(); // On vide les triangles
+    app.triangles.emplace_back(Triangle{Coords{-1000, -1000}, Coords{500, 3000}, Coords{1500, -1000}}); // On créé un très grand triangle
 
-    app.triangles.push_back(Triangle{Coords{-1000, -1000}, Coords{500, 3000}, Coords{1500, -1000}}); // On créé un très grand triangle
 
-    for (std::size_t i = 0; i < app.points.size(); i++) { // Pour chaque point p du repère
-        std::vector<Segment> *ls;
-        for (std::size_t j = 0; j < app.triangles.size(); j++) { // Pour chaque triangle déjà créé
+    std::vector<Segment> LS; //on crée un vector LS contenant des segments
+    for (auto& p : app.points) { // Pour chaque point p du repère
+        LS.clear();
+        for (auto& T :app.triangles) { // Pour chaque triangle T déjà créé
 
-            float *xc; // un pointeur vers la coordonnée x du centre du cercle circonscrit
-            float *yc; // un pointeur vers la coordonnée y du centre du cercle circonscrit
-            float *rsqr; // un pointeur vers le carré du rayon du cercle circonscrit
+            float xc; //coordonnée x du centre du cercle circonscrit
+            float yc; // coordonnée y du centre du cercle circonscrit
+            float rsqr; //  carré du rayon du cercle circonscrit
 
-            if (CircumCircle(app.points[i].x, app.points[i].y, app.triangles[j].p1.x, app.triangles[j].p1.y, app.triangles[j].p2.x, app.triangles[j].p2.y, app.triangles[j].p3.x, app.triangles[j].p3.y, xc, yc, rsqr)) {
-               ls->push_back = {app.triangles[j].p1, app.triangles[j].p2}
-               ls->push_back = {app.triangles[j].p2, app.triangles[j].p3}
-               ls->push_back = {app.triangles[j].p1, app.triangles[j].p3}
+            if (CircumCircle(p.x, p.y, T.p1.x, T.p1.y, T.p2.x, T.p2.y, T.p3.x, T.p3.y, &xc, &yc, &rsqr)) {
+                // Récupérer les différents segments de ce triangles dans LS
+                LS.emplace_back(T.p1, T.p2);
+                LS.emplace_back(T.p2, T.p3);
+                LS.emplace_back(T.p3, T.p1);
+                //SDL_Log("lessegments");
+
+
+                //enlever le triangle T de la liste de triangles
+                auto it = find(app.triangles.begin(), app.triangles.end(), T);
+                if (it != app.triangles.end()){
+                    app.triangles.erase(it);
+                }
             }
+        }
+
+        std::vector<Segment> uniqueSegments;
+        for (auto& S:LS)
+        { // pour chaque segment de la liste
+            // si un segment est un doublon d’un autre alors le virer
+            bool isUnique = true;
+            for (auto& us : uniqueSegments) {
+                if ((us.p1 == S.p1)&&(us.p2 == S.p2)) {
+                    isUnique = false;
+                    break;
+                }
+            }
+            if (isUnique) {
+                uniqueSegments.emplace_back(S);
+            }
+        }
+        // Pour chaque segment S de la liste LS faire créer un nouveau triangle composé du segment S et du point P
+        for (auto& S : uniqueSegments) {
+            Triangle newTriangle (p, S.p1, S.p2);
+            app.triangles.emplace_back(newTriangle);
         }
     }
 }
+
 
 void construitVoronoi(Application &app)
 {
@@ -225,7 +269,7 @@ bool handleEvent(Application &app)
             {
                 app.focus.y = 0;
                 app.points.push_back(Coords{e.button.x, e.button.y});
-                fillVectorTriangles(app);
+                //fillVectorTriangles(app);
                 TriangulationDelaunay(app);
                 construitVoronoi(app);
             }
