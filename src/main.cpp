@@ -5,6 +5,8 @@
 #include <map>
 #include <queue>
 #include <algorithm>
+#include <iostream>
+using namespace std;
 
 #define EPSILON 0.0001f
 
@@ -155,6 +157,17 @@ bool CircumCircle(
     return ((drsqr - *rsqr) <= EPSILON ? true : false);
 }
 
+void fillVectorTriangles(Application &app)
+{
+    if(app.points.size()%3 == 0) {
+        int indice1 = app.points.size()-3;
+        int indice2 = app.points.size()-2;
+        int indice3 = app.points.size()-1;
+
+        app.triangles.push_back(Triangle{app.points[indice1], app.points[indice2], app.points[indice3]});
+    }
+}
+
 void construitVoronoi(Application &app)
 {
     
@@ -188,6 +201,7 @@ bool handleEvent(Application &app)
             {
                 app.focus.y = 0;
                 app.points.push_back(Coords{e.button.x, e.button.y});
+                fillVectorTriangles(app);
                 construitVoronoi(app);
             }
         }
@@ -220,14 +234,12 @@ int main(int argc, char **argv)
         is_running = handleEvent(app);
         if (!is_running)
             break;
-
         // EFFACAGE FRAME
         SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
         SDL_RenderClear(renderer);
 
         // DESSIN
         draw(renderer, app);
-
         // VALIDATION FRAME
         SDL_RenderPresent(renderer);
 
