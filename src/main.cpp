@@ -179,66 +179,70 @@ void fillVectorTriangles(Application &app) // Fonction qui ajoute les points aux
     }
 }
 
-void TriangulationDelaunay(Application &app) 
+void TriangulationDelaunay(Application &app)
 {
-   sort(app.points.begin(), app.points.end(), [](Coords &p1, Coords &p2) { return p1.x < p2.x; }); //on trie les points par la coordonée x
+    sort(app.points.begin(), app.points.end(), [](Coords &p1, Coords &p2) { return p1.x < p2.x; }); // On trie les points par la coordonnée x
 
     app.triangles.clear(); // On vide les triangles
     app.triangles.emplace_back(Triangle{Coords{-1000, -1000}, Coords{500, 3000}, Coords{1500, -1000}}); // On créé un très grand triangle
 
-
-    std::vector<Segment> LS; //on crée un vector LS contenant des segments
-    for (auto& p : app.points) { // Pour chaque point p du repère
+    std::vector<Segment> LS; // On crée un vector LS contenant des segments
+    for (auto &p : app.points) { // Pour chaque point p du repère
         LS.clear();
-        for (auto& T :app.triangles) { // Pour chaque triangle T déjà créé
+        std::vector<Triangle> trianglesToRemove; // On stocke les triangles à supprimer
 
-            float xc; //coordonnée x du centre du cercle circonscrit
-            float yc; // coordonnée y du centre du cercle circonscrit
-            float rsqr; //  carré du rayon du cercle circonscrit
+        for (auto &T : app.triangles) { // Pour chaque triangle T déjà créé
+            float xc; // Coordonnée x du centre du cercle circonscrit
+            float yc; // Coordonnée y du centre du cercle circonscrit
+            float rsqr; // Carré du rayon du cercle circonscrit
 
             if (CircumCircle(p.x, p.y, T.p1.x, T.p1.y, T.p2.x, T.p2.y, T.p3.x, T.p3.y, &xc, &yc, &rsqr)) {
-                // Récupérer les différents segments de ce triangles dans LS
+                // Récupérer les différents segments de ce triangle dans LS
                 LS.emplace_back(T.p1, T.p2);
                 LS.emplace_back(T.p2, T.p3);
                 LS.emplace_back(T.p3, T.p1);
-                //SDL_Log("lessegments");
-
-
-                //enlever le triangle T de la liste de triangles
-                auto it = find(app.triangles.begin(), app.triangles.end(), T);
-                if (it != app.triangles.end()){
-                    app.triangles.erase(it);
-                }
+                trianglesToRemove.push_back(T);
             }
         }
 
         std::vector<Segment> uniqueSegments;
-        for (auto& S:LS)
-        { // pour chaque segment de la liste
-            // si un segment est un doublon d’un autre alors le virer
+        for (auto &S : LS) { // Pour chaque segment de la liste
+            // Si un segment est un doublon d'un autre, les supprimer
             bool isUnique = true;
-            for (auto& us : uniqueSegments) {
-                if ((us.p1 == S.p1)&&(us.p2 == S.p2)) {
+            for (auto it = uniqueSegments.begin(); it != uniqueSegments.end();) {
+                if ((it->p1 == S.p1) && (it->p2 == S.p2) || (it->p1 == S.p2) && (it->p2 == S.p1)) {
+                    it = uniqueSegments.erase(it);
                     isUnique = false;
-                    break;
+                } else {
+                    ++it;
                 }
             }
             if (isUnique) {
                 uniqueSegments.emplace_back(S);
             }
         }
-        // Pour chaque segment S de la liste LS faire créer un nouveau triangle composé du segment S et du point P
-        for (auto& S : uniqueSegments) {
-            Triangle newTriangle (p, S.p1, S.p2);
+
+        for (auto &T : trianglesToRemove) {
+            auto it = find(app.triangles.begin(), app.triangles.end(), T);
+            if (it != app.triangles.end()) {
+                app.triangles.erase(it);
+            }
+        }
+
+        // Pour chaque segment S de la liste LS, créer un nouveau triangle composé du segment S et du point P
+        for (auto &S : uniqueSegments) {
+            Triangle newTriangle(p, S.p1, S.p2);
             app.triangles.emplace_back(newTriangle);
         }
     }
 }
 
 
+
+
 void construitVoronoi(Application &app)
 {
-    
+
 }
 
 bool handleEvent(Application &app)
