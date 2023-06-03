@@ -49,6 +49,7 @@ struct Application
 
     std::vector<Coords> points;
     std::vector<Triangle> triangles;
+    std::vector<Segment> segments;
 };
 
 bool compareCoords(Coords point1, Coords point2)
@@ -101,6 +102,7 @@ void draw(SDL_Renderer *renderer, const Application &app)
 
     drawPoints(renderer, app.points);
     drawTriangles(renderer, app.triangles);
+    drawSegments(renderer, app.segments);
 }
 
 /*
@@ -242,8 +244,47 @@ void TriangulationDelaunay(Application &app)
 
 void construitVoronoi(Application &app)
 {
+    // On réinitialise les segments
+    app.segments.clear();
+    // Pour chaque triangle
+    for (const Triangle& t : app.triangles)
+    {
+        // On récupère ses 3 points
+        Coords p1 = t.p1;
+        Coords p2 = t.p2;
+        Coords p3 = t.p3;
 
+        // On met dans xc et yc le centre du cercle circonscrit des points du triangle
+        float xc, yc, rsqr;
+        CircumCircle(0, 0, p1.x, p1.y, p2.x, p2.y, p3.x, p3.y, &xc, &yc, &rsqr);
+
+        // On vérifie les triangles adjacents (ceux qui ont au moins 2 points qui sont similaires au triangle)
+        for (const Triangle& other : app.triangles)
+        {
+            // Vérification des points communs
+            int commonPoints = 0;
+            if (other.p1.x == p1.x && other.p1.y == p1.y || other.p1.x == p2.x && other.p1.y == p2.y || other.p1.x == p3.x && other.p1.y == p3.y)
+                commonPoints++;
+            if (other.p2.x == p1.x && other.p2.y == p1.y || other.p2.x == p2.x && other.p2.y == p2.y || other.p2.x == p3.x && other.p2.y == p3.y)
+                commonPoints++;
+            if (other.p3.x == p1.x && other.p3.y == p1.y || other.p3.x == p2.x && other.p3.y == p2.y || other.p3.x == p3.x && other.p3.y == p3.y)
+                commonPoints++;
+
+            // Si le triangle partage au moins 2 points avec le triangle courant, on ajoute un segment dans app.segments
+            if (commonPoints >= 2)
+            {
+                // On met dans xcOther et dans ycOther les coordonnées du centre du cercle circonscrit du triangle adjacent au triangle t
+                float xcOther, ycOther, rsqrOther;
+                CircumCircle(0, 0, other.p1.x, other.p1.y, other.p2.x, other.p2.y, other.p3.x, other.p3.y, &xcOther, &ycOther, &rsqrOther);
+
+                // Ajout du segment avec les points du centre des cercles circonscrits des deux triangles
+                Segment segment(Coords{static_cast<int>(xc), static_cast<int>(yc)}, Coords{static_cast<int>(xcOther), static_cast<int>(ycOther)});
+                app.segments.push_back(segment);
+            }
+        }
+    }
 }
+
 
 bool handleEvent(Application &app)
 {
