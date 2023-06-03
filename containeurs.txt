@@ -1,0 +1,64 @@
+list, vector, deque et map sont quatre containeurs C++. Ils permettent de stoquer plusieurs éléments.
+
+
+LIST est un containeurs doublement chainé. C'est à dire que chaque élément est lié à celui qui le précède ainsi que le suivant.
+
+
+Avantages de list :
+
+- On peut ajouter ou supprimer un élément de list n'importe où, que ce soit au début, au milieu ou a la fin de list
+- On peut parcourir list dans les deux sens, que ça soit en commençant par le début ou par la fin
+- Par rapport aux ittérateurs des éléments de la liste, la suppression d'un élément ne pose pas de problème quant aux autres ittérateurs, seul l'ittérateur de l'élément supprimé sera invalide.
+- List peut contenir des éléments de type différents car chaque élément est lié à son suivant et a son précédent par un pointeur du type de celui-ci.
+
+Inconvénients de list : 
+
+- On ne peut pas supprimer de manière optimisée un élément aléatoire de la list. Il faut donc parcourir toute la liste en générant un ittérateur aléatoire qui sera l'élément supprimé
+- Le pointeur de l'élément suivant dans la liste demande une allocation d'espace supplémentaire
+- Il faut parcourir tous les autres éléments (en partant de la fin ou du début) pour atteindre un élément de list
+
+
+VECTOR est un tableau dynamique. C'est à dire que contrairement aux tableaux C++ normaux, un vecteur peut allouer des places supplémentaires pendant le programme alors qu'un tableau normal devra définir sa taille au début et ne plus la modifier. C'est donc un tableau plus optimisé.
+
+Avantages de vector : 
+
+- Comme expliqué précédemment, la taille du tableau est dynamique. Si le programme demande beaucoup d'espace du tableau pendant une execution, il peut demander peu d'espace pour ce même tableau lors d'une autre execution et ainsi optimiser le programme.
+- On peut accéder aux éléments d'un vecteur en utilisant un ittérateur ou des pointeurs directement
+- Pour ajouter un élément à un vecteur, on peut généralement l'ajouter à la fin. C'est assez optimisé
+- Il y a des fonctions de base dans les vecteurs, on peut trier, rechercher ou inverser des données.
+
+Inconvénients de vector :
+
+- Pour ajouter ou supprimer des éléments en milieu de vecteur, cela rajoute de la compléxité supplémentaire à l'algorithme car le vecteur doit réagencer tous les autres éléments.
+- Si un vecteur atteint sa capacité maximale, il peut demander beaucoup de mémoire pour réalouer de l'espace.
+- On ne peut que stocker des éléments du même type dans un vecteur
+
+
+DEQUE est un containeur qui d'éléments indexés. Les éléments ne sont pas accessibles via des pointeurs mais seulement par ittération
+
+Avantages de deque :
+
+- On peut sélectionner un élément aléatoire de la deque avec une compléxité constante
+- On peut facilement insérer et supprimer des éléments au début et à la fin du tableau et la complexité de cette opération est constante
+- On peut accéder aux éléments d'une deque grâce à leurs index, sans parcourir tous les autres éléments
+- Une deque permet un stockage dynamique, c'est à dire que la mémoire allouée peut se moduler au besoin 
+- Les éléments ne sont pas liés entre eux, c'est à dire qu'on peut les supprimer ou en ajouter sans poser problème pour les pointeurs des autres éléments du containeur
+
+Inconvénients de deque :
+
+- Une deque a un coût minimum de mémoire contrairement à un vecteur, c'est à dire que les éléments d'une deque sont stoqués par paquets et pour chaque élément qui ne peut pas être contenu dans un paquet déjà existant, il faut recréer un nouveau paquet.
+- Comme un vecteur, si on supprime ou qu'on ajoute des éléments en milieu de deque, on doit réagencer les autres éléments, ce qui rajoute de la compléxité à l'algorithme
+- Des opérations telles que erase et resize peuvent invalider les ittérateurs de la deque. Il faut faire attention
+- Comme on ne peut pas accéder aux éléments de la deque de manière contigue comme pour un vecteur, l'accès à des données de la dèque peut être très coûteux si on doit parcourir tous les éléments
+
+MAP est un containeur qui fonctionne dans un principe de clé-valeur. C'est à dire que chaque élément d'une map possède une clé unique qui permet de l'identifier, de trier les éléments ainsi qu'une valeur liée à la clé. Les éléments de map sont également liés entre eux dans le même principe qu'un arbre binaire de recherche (qu'on a vu en TP)
+
+Avantages d'une map : 
+
+- Etant donné que chaque élément possède une clé, pour rechercher des valeurs c'est le containeur le plus optimisé car on peut effectuer des comparaisons entre les clés pour parcourir la map.
+- Les éléments d'une map sont directement triés automatiquement à l'ajout, ce qui permet de conserver un containeur avec des éléments triés dès leur implémentation. On peut donc afficher des données déjà triées sans effectuer des opérations complexes pour parcourir la map
+
+Inconvénients d'une map : 
+
+- L'allocation de la mémoire d'une map est plutôt élevée par rapport à une list, un vecteur ou une deque.
+- L'insertion et la suppression des données peut être plus lente étant donné que les données sont triées avant d'être insérées
