@@ -6,6 +6,7 @@
 #include <queue>
 #include <algorithm>
 #include <iostream>
+#include <random>
 using namespace std;
 
 #define EPSILON 0.0001f
@@ -26,10 +27,17 @@ struct Segment
     Segment(Coords point1, Coords point2) : p1(point1), p2(point2) {} //constructeur : initialise les membres p1 et p2 avec les points point1 et point2 lorsqu'un objet Segment est créé
 };
 
+struct RGB {
+    int red;
+    int green;
+    int blue;
+};
+
 struct Triangle
 {
     Coords p1, p2, p3;
     bool complet=false;
+    RGB triangleColor;
 
     Triangle(const Coords& _p1, const Coords& _p2, const Coords& _p3, bool _complet=false) : p1(_p1), p2(_p2), p3(_p3), complet(_complet) {}
 
@@ -75,8 +83,40 @@ void drawSegments(SDL_Renderer *renderer, const std::vector<Segment> &segments)
             renderer,
             segments[i].p1.x, segments[i].p1.y,
             segments[i].p2.x, segments[i].p2.y,
-            240, 240, 20, SDL_ALPHA_OPAQUE);
+            255, 255, 255, SDL_ALPHA_OPAQUE); //lignes blanches
     }
+}
+
+RGB PinkFloydColor(){
+
+    std::deque<RGB> rgbDeque;
+
+    // Remplissage du deque avec les couleurs de pinkfloyd
+    //Nous avons choisi de reprendre les couleurs des affiches/cover de pinkFloyd car cela va bien avec la notion de triangle :)
+    rgbDeque.push_back({141, 74, 167});    // Violet
+    rgbDeque.push_back({13, 174, 237});    // Bleu
+    rgbDeque.push_back({115, 191, 67});    // Vert
+    rgbDeque.push_back({255, 245, 4});  // Jaune
+    rgbDeque.push_back({236, 131, 22});  // Orange
+    rgbDeque.push_back({235, 29, 56});  // Rouge
+    // rgbDeque.push_back({0, 0, 0}); //Noir
+
+
+    // Générateur de nombres aléatoires
+    random_device rd;
+    mt19937 gen(rd());
+    uniform_int_distribution<> dis(0, rgbDeque.size() - 1);
+
+    // Appel aléatoire d'une valeur RGB
+    int randomIndex = dis(gen);
+    RGB randomRGB = rgbDeque[randomIndex];
+
+      // Affichage de la valeur RGB aléatoire
+    std::cout << "Valeur RGB aléatoire : (" << randomRGB.red << ", "
+              << randomRGB.green << ", " << randomRGB.blue << ")" << std::endl;
+
+    return (randomRGB);
+
 }
 
 void drawTriangles(SDL_Renderer *renderer, const std::vector<Triangle> &triangles)
@@ -84,12 +124,19 @@ void drawTriangles(SDL_Renderer *renderer, const std::vector<Triangle> &triangle
     for (std::size_t i = 0; i < triangles.size(); i++)
     {
         const Triangle& t = triangles[i];
-        trigonRGBA(
+        filledTrigonRGBA( //triangles remplis
             renderer,
             t.p1.x, t.p1.y,
             t.p2.x, t.p2.y,
             t.p3.x, t.p3.y,
-            0, 240, 160, SDL_ALPHA_OPAQUE
+            t.triangleColor.red, t.triangleColor.green, t.triangleColor.blue, SDL_ALPHA_OPAQUE
+        );
+        trigonRGBA( //contour noir
+            renderer,
+            t.p1.x, t.p1.y,
+            t.p2.x, t.p2.y,
+            t.p3.x, t.p3.y,
+            0, 0, 0, SDL_ALPHA_OPAQUE
         );
     }
 }
@@ -181,6 +228,8 @@ void fillVectorTriangles(Application &app) // Fonction qui ajoute les points aux
     }
 }
 
+
+
 void TriangulationDelaunay(Application &app)
 {
     sort(app.points.begin(), app.points.end(), [](Coords &p1, Coords &p2) { return p1.x < p2.x; }); // On trie les points par la coordonnée x
@@ -234,6 +283,7 @@ void TriangulationDelaunay(Application &app)
         // Pour chaque segment S de la liste LS, créer un nouveau triangle composé du segment S et du point P
         for (auto &S : uniqueSegments) {
             Triangle newTriangle(p, S.p1, S.p2);
+            newTriangle.triangleColor=PinkFloydColor(); // on assigne une couleur random de PinkFloyd au triangle
             app.triangles.emplace_back(newTriangle);
         }
     }
@@ -331,8 +381,9 @@ int main(int argc, char **argv)
     bool is_running = true;
 
     // Creation de la fenetre
-    gWindow = init("Awesome Voronoi", 720, 720);
+    gWindow = init("PinkFloyd Voronoi", 720, 720);
 
+   
     if (!gWindow)
     {
         SDL_Log("Failed to initialize!\n");

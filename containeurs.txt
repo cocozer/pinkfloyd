@@ -1,4 +1,4 @@
-list, vector, deque et map sont quatre containeurs C++. Ils permettent de stoquer plusieurs éléments.
+list, vector, deque et map sont quatre containeurs C++. Ils permettent de stocker plusieurs éléments.
 
 
 LIST est un containeurs doublement chainé. C'est à dire que chaque élément est lié à celui qui le précède ainsi que le suivant.
